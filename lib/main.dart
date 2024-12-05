@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 
-import 'haptic_feedback.dart';
+import 'score_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -25,7 +25,7 @@ class MainApp extends StatelessWidget {
         brightness: Brightness.dark,
       ),
       themeMode: ThemeMode.dark,
-      home: const HapticFeedbackScreen(),
+      home: const ScoreScreen(),
     );
   }
 }
