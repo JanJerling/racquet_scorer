@@ -52,7 +52,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 10),
+                const SizedBox(height: 40),
                 IconButton.filled(
                   onPressed: () {},
                   color: Colors.black,
@@ -69,8 +69,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
                     color: Colors.black,
                     icon: const Icon(Icons.remove),
                     style: ButtonStyle(
-                      backgroundColor:
-                          WidgetStateProperty.all<Color>(Colors.lightBlue),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                          Colors.lightBlue.withOpacity(0.7)),
                     ),
                   ),
                 )
@@ -83,7 +83,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
                 Card(
                   color: Colors.transparent,
                   child: Text(
-                    "40",
+                    "40 ",
                     style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                         color: const Color.fromARGB(255, 143, 187, 223)),
                   ),
@@ -91,7 +91,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
                 Card(
                   color: Colors.transparent,
                   child: Text(
-                    "15",
+                    " 15",
                     style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                         color: const Color.fromARGB(255, 142, 221, 145)),
                   ),
@@ -101,7 +101,18 @@ class _ScoreScreenState extends State<ScoreScreen> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 10),
+                Transform.scale(
+                  scale: 0.65,
+                  child: IconButton.filled(
+                    onPressed: () {},
+                    color: Colors.black,
+                    icon: const Icon(Icons.remove),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                          Colors.lightGreen.withOpacity(0.5)),
+                    ),
+                  ),
+                ),
                 IconButton.filled(
                   onPressed: () {},
                   color: Colors.black,
@@ -111,18 +122,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
                         WidgetStateProperty.all<Color>(Colors.green),
                   ),
                 ),
-                Transform.scale(
-                  scale: 0.65,
-                  child: IconButton.filled(
-                    onPressed: () {},
-                    color: Colors.black,
-                    icon: const Icon(Icons.remove),
-                    style: ButtonStyle(
-                      backgroundColor:
-                          WidgetStateProperty.all<Color>(Colors.lightGreen),
-                    ),
-                  ),
-                )
               ],
             ),
           ],
