@@ -71,9 +71,7 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
-                    print(ref.watch(goldenPointProvider));
                     ref.watch(goldenPointProvider.notifier).toggleGoldenPoint();
-                    print(ref.watch(goldenPointProvider));
                     Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
