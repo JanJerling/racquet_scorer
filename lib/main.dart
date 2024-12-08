@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'score_screen.dart';
+import 'game_type_screen.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const ProviderScope(child: MainApp()));
   startForegroundService();
 }
 
@@ -25,7 +26,7 @@ class MainApp extends StatelessWidget {
         brightness: Brightness.dark,
       ),
       themeMode: ThemeMode.dark,
-      home: const ScoreScreen(),
+      home: const GameTypeScreen(),
     );
   }
 }
