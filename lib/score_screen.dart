@@ -18,8 +18,8 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
   String currentTime = DateFormat('HH:mm').format(DateTime.now());
   int oceanScore = 0;
   int forestScore = 0;
-  final List<String> scoresTraditional = ["0", "15", "30", "40", "AD"];
-  final List<String> scoresGoldenPoint = ["0", "15", "30", "40"];
+  final List<String> scoresTraditional = ["  0", "15", "30", "40", "AD"];
+  final List<String> scoresGoldenPoint = ["  0", "15", "30", "40"];
   late List<String> scores;
   bool isGoldenPoint = false;
 
@@ -31,9 +31,6 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
     setState(() {
       currentTime = DateFormat('HH:mm').format(DateTime.now());
     });
-
-    // Initialize scores
-    scores = isGoldenPoint ? scoresTraditional : scoresGoldenPoint;
 
     // Start the clock timer
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -60,10 +57,15 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
           }
         } else if (forestScore == 3 && oceanScore == 4) {
           oceanScore--;
+          forestScore++;
         } else if (forestScore == 4 && oceanScore == 3) {
           endGameProcess(team);
         } else {
-          forestScore++;
+          if (forestScore == 3 && oceanScore < 3) {
+            endGameProcess(team);
+          } else {
+            forestScore++;
+          }
         }
       });
     }
@@ -77,10 +79,15 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
           }
         } else if (oceanScore == 3 && forestScore == 4) {
           forestScore--;
+          oceanScore++;
         } else if (oceanScore == 4 && forestScore == 3) {
           endGameProcess(team);
         } else {
-          oceanScore++;
+          if (oceanScore == 3 && forestScore < 3) {
+            endGameProcess(team);
+          } else {
+            oceanScore++;
+          }
         }
       });
     }
@@ -98,7 +105,11 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // is Golden Point?
     isGoldenPoint = ref.watch(goldenPointProvider);
+    // Initialize scores list
+    scores = isGoldenPoint ? scoresGoldenPoint : scoresTraditional;
+    //body
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(children: [
@@ -125,9 +136,11 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
                     scale: 0.65,
                     child: IconButton.filled(
                       onPressed: () {
-                        setState(() {
-                          forestScore--;
-                        });
+                        if (forestScore > 0) {
+                          setState(() {
+                            forestScore--;
+                          });
+                        }
                       },
                       color: Colors.black,
                       icon: const Icon(Icons.remove),
@@ -176,9 +189,11 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
                     scale: 0.65,
                     child: IconButton.filled(
                       onPressed: () {
-                        setState(() {
-                          oceanScore--;
-                        });
+                        if (oceanScore > 0) {
+                          setState(() {
+                            oceanScore--;
+                          });
+                        }
                       },
                       color: Colors.black,
                       icon: const Icon(Icons.remove),
