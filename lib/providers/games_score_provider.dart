@@ -15,9 +15,7 @@ class GamesScoreProvider extends StateNotifier<MatchScore> {
   }
 
   void newSet() {
-    state = state.copyWith(set: state.set + 1);
-    state = state.copyWith(gameForest: 0);
-    state = state.copyWith(gameOcean: 0);
+    state = state.copyWith(set: state.set + 1, gameForest: 0, gameOcean: 0);
   }
 }
 

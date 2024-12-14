@@ -15,7 +15,6 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'Racquet Scorer',
       darkTheme: ThemeData(
-        visualDensity: VisualDensity.compact,
         useMaterial3: true,
         brightness: Brightness.dark,
       ),

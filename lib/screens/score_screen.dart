@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:racquet_scorer/providers/games_score_provider.dart';
+import 'package:racquet_scorer/providers/set_list_provider.dart';
+import 'package:racquet_scorer/screens/exit_screen.dart';
 import 'package:racquet_scorer/screens/options_screen.dart';
 import 'package:racquet_scorer/providers/tie_break_provider.dart';
+import 'package:racquet_scorer/widgets/top_score_bar.dart';
 
 import '../providers/golden_point_provider.dart';
 
@@ -29,6 +32,7 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
   int setCount = 1;
   int gamesOcean = 0;
   int gamesForest = 0;
+  int tieBreakDuration = 7;
 
   @override
   void initState() {
@@ -54,8 +58,8 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
     if (isTieBreak) {
       if (team == "forest") {
         setState(() {
-          if (forestScore >= 6 && (forestScore - oceanScore) >= 2) {
-            ref.read(tieBreakProvider.notifier).toggleTieBreak();
+          if (forestScore >= tieBreakDuration - 1 &&
+              (forestScore - oceanScore) > 0) {
             endGameProcess(team);
           } else {
             forestScore++;
@@ -64,8 +68,8 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
       }
       if (team == "ocean") {
         setState(() {
-          if (oceanScore >= 6 && (oceanScore - forestScore) >= 2) {
-            ref.read(tieBreakProvider.notifier).toggleTieBreak();
+          if (oceanScore >= tieBreakDuration - 1 &&
+              (oceanScore - forestScore) > 0) {
             endGameProcess(team);
           } else {
             oceanScore++;
@@ -124,6 +128,9 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
 
   void endGameProcess(String team) {
     ref.read(gamesScoreProvider.notifier).addGame(team);
+    ref
+        .read(setListProvider.notifier)
+        .updateMatch(ref.watch(gamesScoreProvider));
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (ctx) => const OptionsScreen()),
@@ -141,7 +148,8 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
     // is Golden Point?
     isGoldenPoint = ref.watch(goldenPointProvider);
     // Check if it is a tie break
-    isTieBreak = ref.watch(tieBreakProvider);
+    isTieBreak = ref.watch(tieBreakProvider).isBreaker;
+    tieBreakDuration = ref.watch(tieBreakProvider).tieDuration;
     // retrieve set count
     setCount = ref.watch(gamesScoreProvider).set;
     gamesForest = ref.watch(gamesScoreProvider).gameForest;
@@ -149,191 +157,192 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
     // Initialize scores list
     scores = isGoldenPoint ? scoresGoldenPoint : scoresTraditional;
     //body
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(children: [
-        Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (ctx) => const ExitScreen()));
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          // stack for clock and main screen
           children: [
-            const SizedBox(height: 8),
-            Row(
+            // main screen column
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Set $setCount : "),
-                const SizedBox(width: 8),
-                Text(
-                  "$gamesForest",
-                  style: const TextStyle(color: Colors.green),
+                // set and game counter row
+                const TopScoreBar(),
+                // Scores Row
+                Row(
+                  children: [
+                    // undo scores column
+                    Expanded(
+                      flex: 8,
+                      child: Container(
+                        alignment: const Alignment(0.4, 0),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: IconButton(
+                                onPressed: () {
+                                  if (forestScore > 0) {
+                                    setState(() {
+                                      forestScore--;
+                                    });
+                                  }
+                                },
+                                padding: EdgeInsets.zero,
+                                color: Colors.black,
+                                icon: const Icon(Icons.remove),
+                                iconSize: 20,
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                          Colors.green.withOpacity(0.8)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: IconButton(
+                                onPressed: () {
+                                  if (oceanScore > 0) {
+                                    setState(() {
+                                      oceanScore--;
+                                    });
+                                  }
+                                },
+                                padding: EdgeInsets.zero,
+                                color: Colors.black,
+                                icon: const Icon(Icons.remove),
+                                iconSize: 20,
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                          Colors.blue.withOpacity(0.8)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // add score
+                    Expanded(
+                      flex: 20,
+                      child: Column(
+                        children: [
+                          // Forest scorer
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              SizedBox(
+                                width: 50,
+                                child: Card(
+                                  color: Colors.transparent,
+                                  child: Text(
+                                    isTieBreak
+                                        ? forestScore.toString()
+                                        : scores[forestScore],
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge!
+                                        .copyWith(
+                                            color: const Color.fromARGB(
+                                                255, 142, 221, 145)),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 52,
+                                height: 52,
+                                child: IconButton(
+                                  onPressed: () => pointsCalculator("forest"),
+                                  color: Colors.black,
+                                  icon: const Icon(Icons.add),
+                                  iconSize: 30,
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        WidgetStateProperty.all<Color>(
+                                            Colors.green),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 18)
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Ocean scorer
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              SizedBox(
+                                width: 50,
+                                child: Card(
+                                  color: Colors.transparent,
+                                  child: Text(
+                                    isTieBreak
+                                        ? oceanScore.toString()
+                                        : scores[oceanScore],
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge!
+                                        .copyWith(
+                                          color: const Color.fromARGB(
+                                              255, 143, 187, 223),
+                                        ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 52,
+                                height: 52,
+                                child: IconButton(
+                                  onPressed: () => pointsCalculator("ocean"),
+                                  color: Colors.black,
+                                  icon: const Icon(Icons.add),
+                                  iconSize: 30,
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        WidgetStateProperty.all<Color>(
+                                            Colors.blue),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 18)
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                const Text("|"),
-                const SizedBox(width: 4),
-                Text(
-                  "$gamesOcean",
-                  style: const TextStyle(color: Colors.blue),
-                ),
+                const SizedBox(height: 4),
               ],
             ),
-            const SizedBox(height: 4),
-            // Forest scorer
-            SizedBox(
-              width: double.infinity,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      alignment: Alignment.centerRight,
-                      child: Transform.scale(
-                        scale: 0.5,
-                        child: IconButton.filled(
-                          onPressed: () {
-                            if (forestScore > 0) {
-                              setState(() {
-                                forestScore--;
-                              });
-                            }
-                          },
-                          padding: EdgeInsets.zero,
-                          color: Colors.black,
-                          icon: const Icon(Icons.remove),
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all<Color>(
-                                Colors.green.withOpacity(0.8)),
-                          ),
-                        ),
-                      ),
-                    ),
+            Positioned(
+              top: 10,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  currentTime,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
                   ),
-                  Expanded(
-                    flex: 6,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Card(
-                        color: Colors.transparent,
-                        child: Text(
-                          isTieBreak
-                              ? forestScore.toString()
-                              : scores[forestScore],
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineLarge!
-                              .copyWith(
-                                  color:
-                                      const Color.fromARGB(255, 142, 221, 145)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 8,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => pointsCalculator("forest"),
-                        color: Colors.black,
-                        icon: const Icon(Icons.add),
-                        style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.all<Color>(Colors.green),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Ocean scorer
-            SizedBox(
-              width: double.infinity,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      alignment: Alignment.centerRight,
-                      child: Transform.scale(
-                        scale: 0.5,
-                        child: Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: IconButton(
-                            onPressed: () {
-                              if (oceanScore > 0) {
-                                setState(() {
-                                  oceanScore--;
-                                });
-                              }
-                            },
-                            color: Colors.black,
-                            icon: const Icon(Icons.remove),
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStateProperty.all<Color>(
-                                  Colors.blue.withOpacity(0.8)),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 6,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Card(
-                        color: Colors.transparent,
-                        child: Text(
-                          isTieBreak
-                              ? oceanScore.toString()
-                              : scores[oceanScore],
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineLarge!
-                              .copyWith(
-                                  color:
-                                      const Color.fromARGB(255, 143, 187, 223)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 8,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => pointsCalculator("ocean"),
-                        color: Colors.black,
-                        icon: const Icon(Icons.add),
-                        style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.all<Color>(Colors.blue),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
-        )),
-        Positioned(
-          top: 10,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Text(
-              currentTime,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ),
         ),
-      ]),
+      ),
     );
   }
 }

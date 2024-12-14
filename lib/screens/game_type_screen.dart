@@ -68,7 +68,7 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
                   ),
                   child: const Text("Traditional"),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
                     ref.watch(goldenPointProvider.notifier).toggleGoldenPoint();

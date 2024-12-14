@@ -2,24 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:racquet_scorer/providers/games_score_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:racquet_scorer/screens/exit_screen.dart';
 import 'package:racquet_scorer/screens/score_screen.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:racquet_scorer/providers/set_list_provider.dart';
 import 'package:racquet_scorer/providers/tie_break_provider.dart';
-import 'package:racquet_scorer/screens/tie_break_options.dart';
-import 'package:racquet_scorer/widgets/top_score_bar.dart';
-import 'view_scores_screen.dart';
 
-class OptionsScreen extends ConsumerStatefulWidget {
-  const OptionsScreen({super.key});
+class TieBreakOptions extends ConsumerStatefulWidget {
+  const TieBreakOptions({super.key});
 
   @override
-  ConsumerState<OptionsScreen> createState() => _OptionsScreenState();
+  ConsumerState<TieBreakOptions> createState() => _TieBreakOptionsState();
 }
 
-class _OptionsScreenState extends ConsumerState<OptionsScreen> {
+class _TieBreakOptionsState extends ConsumerState<TieBreakOptions> {
   Timer? _clockTimer;
   String currentTime = DateFormat('HH:mm').format(DateTime.now());
 
@@ -51,8 +47,6 @@ class _OptionsScreenState extends ConsumerState<OptionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var forest = ref.watch(gamesScoreProvider).gameForest;
-    var ocean = ref.watch(gamesScoreProvider).gameOcean;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -67,62 +61,42 @@ class _OptionsScreenState extends ConsumerState<OptionsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const TopScoreBar(),
-                  const SizedBox(height: 9),
+                  const Text("Tie-break options:"),
+                  const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () {
-                      if ((forest == 6 && ocean < 5) ||
-                          (ocean == 6 && forest < 5) ||
-                          (forest == 7 && ocean == 5) ||
-                          (ocean == 7 && forest == 5) ||
-                          (forest == 7 && ocean == 6) ||
-                          (ocean == 7 && forest == 6)) {
-                        ref
-                            .read(setListProvider.notifier)
-                            .addMatch(ref.watch(gamesScoreProvider));
-                        ref.read(gamesScoreProvider.notifier).newSet();
-                        if (ref.watch(tieBreakProvider).isBreaker) {
-                          ref.read(tieBreakProvider.notifier).toggleTieBreak();
-                        }
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (ctx) => const ScoreScreen()),
-                            (Route<dynamic> route) => false);
-                      } else if (forest == 6 && ocean == 6) {
-                        ref.read(tieBreakProvider.notifier).toggleTieBreak();
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (ctx) => const TieBreakOptions()),
-                            (Route<dynamic> route) => false);
-                      } else {
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (ctx) => const ScoreScreen()),
-                            (Route<dynamic> route) => false);
-                      }
-                    },
-                    style: const ButtonStyle(
-                      foregroundColor: WidgetStatePropertyAll(Colors.white),
-                      minimumSize: WidgetStatePropertyAll(Size(150, 50)),
-                    ),
-                    child: const Text("Next Game"),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
+                      ref
+                          .read(tieBreakProvider.notifier)
+                          .setTieBreakDuration(7);
+                      Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                              builder: (ctx) => const ViewScoresScreen()));
+                              builder: (ctx) => const ScoreScreen()),
+                          (Route<dynamic> route) => false);
                     },
                     style: const ButtonStyle(
                       foregroundColor: WidgetStatePropertyAll(Colors.white),
                       minimumSize: WidgetStatePropertyAll(Size(150, 50)),
                     ),
-                    child: const Text("View Scores"),
+                    child: const Text("7 point"),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref
+                          .read(tieBreakProvider.notifier)
+                          .setTieBreakDuration(10);
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (ctx) => const ScoreScreen()),
+                          (Route<dynamic> route) => false);
+                    },
+                    style: const ButtonStyle(
+                      foregroundColor: WidgetStatePropertyAll(Colors.white),
+                      minimumSize: WidgetStatePropertyAll(Size(150, 50)),
+                    ),
+                    child: const Text("10 point"),
                   ),
                 ],
               ),
