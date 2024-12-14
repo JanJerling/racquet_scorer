@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'match_score.dart';
+import '../classes/match_score.dart';
 
 class GamesScoreProvider extends StateNotifier<MatchScore> {
   GamesScoreProvider() : super(MatchScore(set: 1, gameOcean: 0, gameForest: 0));

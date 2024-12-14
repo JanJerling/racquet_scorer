@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:racquet_scorer/games_score_provider.dart';
-import 'package:racquet_scorer/options_screen.dart';
-import 'package:racquet_scorer/tie_break_provider.dart';
+import 'package:racquet_scorer/providers/games_score_provider.dart';
+import 'package:racquet_scorer/screens/options_screen.dart';
+import 'package:racquet_scorer/providers/tie_break_provider.dart';
 
-import 'golden_point_provider.dart';
+import '../providers/golden_point_provider.dart';
 
 class ScoreScreen extends ConsumerStatefulWidget {
   const ScoreScreen({super.key});

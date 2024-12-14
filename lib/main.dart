@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'game_type_screen.dart';
+import 'screens/game_type_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MainApp()));
-  startForegroundService();
-}
-
-void startForegroundService() async {
-  ForegroundService().start();
 }
 
 class MainApp extends StatelessWidget {

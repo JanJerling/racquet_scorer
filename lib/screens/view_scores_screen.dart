@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:racquet_scorer/set_list_provider.dart';
+import 'package:racquet_scorer/providers/set_list_provider.dart';
 
 class ViewScoresScreen extends ConsumerWidget {
   const ViewScoresScreen({super.key});

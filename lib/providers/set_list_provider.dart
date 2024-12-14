@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'match_score.dart';
+import '../classes/match_score.dart';
 
 class SetListProvider extends StateNotifier<List<MatchScore>> {
   SetListProvider() : super([]);

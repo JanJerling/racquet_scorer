@@ -2,19 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:racquet_scorer/providers/games_score_provider.dart';
+import 'package:racquet_scorer/screens/score_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:racquet_scorer/providers/set_list_provider.dart';
+import 'package:racquet_scorer/providers/tie_break_provider.dart';
+import 'view_scores_screen.dart';
 
-import 'golden_point_provider.dart';
-import 'score_screen.dart';
-
-class GameTypeScreen extends ConsumerStatefulWidget {
-  const GameTypeScreen({super.key});
+class OptionsScreen extends ConsumerStatefulWidget {
+  const OptionsScreen({super.key});
 
   @override
-  ConsumerState<GameTypeScreen> createState() => _GameTypeScreenState();
+  ConsumerState<OptionsScreen> createState() => _OptionsScreenState();
 }
 
-class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
+class _OptionsScreenState extends ConsumerState<OptionsScreen> {
   Timer? _clockTimer;
   String currentTime = DateFormat('HH:mm').format(DateTime.now());
 
@@ -46,6 +48,8 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var forest = ref.watch(gamesScoreProvider).gameForest;
+    var ocean = ref.watch(gamesScoreProvider).gameOcean;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -56,6 +60,19 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
               children: [
                 ElevatedButton(
                   onPressed: () {
+                    if ((forest == 6 && ocean < 5) ||
+                        (ocean == 6 && forest < 5) ||
+                        (forest == 7 && ocean == 5) ||
+                        (ocean == 7 && forest == 5) ||
+                        (forest == 7 && ocean == 6) ||
+                        (ocean == 7 && forest == 6)) {
+                      ref
+                          .read(setListProvider.notifier)
+                          .addMatch(ref.watch(gamesScoreProvider));
+                      ref.read(gamesScoreProvider.notifier).newSet();
+                    } else if (forest == 6 && ocean == 6) {
+                      ref.read(tieBreakProvider.notifier).toggleTieBreak();
+                    }
                     Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
@@ -66,38 +83,44 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
                     foregroundColor: WidgetStatePropertyAll(Colors.white),
                     minimumSize: WidgetStatePropertyAll(Size(150, 50)),
                   ),
-                  child: const Text("Traditional"),
+                  child: const Text("Next Game"),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
                 ElevatedButton(
                   onPressed: () {
-                    ref.watch(goldenPointProvider.notifier).toggleGoldenPoint();
-                    Navigator.pushAndRemoveUntil(
+                    Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (ctx) => const ScoreScreen()),
-                        (Route<dynamic> route) => false);
+                            builder: (ctx) => const ViewScoresScreen()));
                   },
                   style: const ButtonStyle(
                     foregroundColor: WidgetStatePropertyAll(Colors.white),
                     minimumSize: WidgetStatePropertyAll(Size(150, 50)),
                   ),
-                  child: const Text("Golden Point"),
+                  child: const Text("View Scores"),
                 ),
               ],
             ),
           ),
           Positioned(
-            top: 10,
+            top: 0,
             left: 0,
             right: 0,
-            child: Center(
-              child: Text(
-                currentTime,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white,
-                ),
+            child: Container(
+              color: Colors.black,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Text(
+                      currentTime,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
