@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:racquet_scorer/games_score_provider.dart';
+import 'package:racquet_scorer/options_screen.dart';
+import 'package:racquet_scorer/tie_break_provider.dart';
 
 import 'golden_point_provider.dart';
 
@@ -21,7 +24,11 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
   final List<String> scoresTraditional = ["  0", "15", "30", "40", "AD"];
   final List<String> scoresGoldenPoint = ["  0", "15", "30", "40"];
   late List<String> scores;
+  bool isTieBreak = false;
   bool isGoldenPoint = false;
+  int setCount = 1;
+  int gamesOcean = 0;
+  int gamesForest = 0;
 
   @override
   void initState() {
@@ -44,57 +51,83 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
   }
 
   void pointsCalculator(String team) {
-    print(team);
-    print(forestScore);
-    print(oceanScore);
-    if (team == "forest") {
-      setState(() {
-        if (isGoldenPoint) {
-          if (forestScore == 3 && oceanScore == 3) {
+    if (isTieBreak) {
+      if (team == "forest") {
+        setState(() {
+          if (forestScore >= 6 && (forestScore - oceanScore) >= 2) {
+            ref.read(tieBreakProvider.notifier).toggleTieBreak();
             endGameProcess(team);
           } else {
             forestScore++;
           }
-        } else if (forestScore == 3 && oceanScore == 4) {
-          oceanScore--;
-          forestScore++;
-        } else if (forestScore == 4 && oceanScore == 3) {
-          endGameProcess(team);
-        } else {
-          if (forestScore == 3 && oceanScore < 3) {
-            endGameProcess(team);
-          } else {
-            forestScore++;
-          }
-        }
-      });
-    }
-    if (team == "ocean") {
-      setState(() {
-        if (isGoldenPoint) {
-          if (forestScore == 3 && oceanScore == 3) {
+        });
+      }
+      if (team == "ocean") {
+        setState(() {
+          if (oceanScore >= 6 && (oceanScore - forestScore) >= 2) {
+            ref.read(tieBreakProvider.notifier).toggleTieBreak();
             endGameProcess(team);
           } else {
             oceanScore++;
           }
-        } else if (oceanScore == 3 && forestScore == 4) {
-          forestScore--;
-          oceanScore++;
-        } else if (oceanScore == 4 && forestScore == 3) {
-          endGameProcess(team);
-        } else {
-          if (oceanScore == 3 && forestScore < 3) {
-            endGameProcess(team);
+        });
+      }
+    } else {
+      if (team == "forest") {
+        setState(() {
+          if (isGoldenPoint) {
+            if (forestScore == 3) {
+              endGameProcess(team);
+            } else {
+              forestScore++;
+            }
           } else {
-            oceanScore++;
+            if (forestScore == 3 && oceanScore == 4) {
+              oceanScore--;
+            } else if (forestScore == 4 && oceanScore == 3) {
+              endGameProcess(team);
+            } else {
+              if (forestScore == 3 && oceanScore < 3) {
+                endGameProcess(team);
+              } else {
+                forestScore++;
+              }
+            }
           }
-        }
-      });
+        });
+      }
+      if (team == "ocean") {
+        setState(() {
+          if (isGoldenPoint) {
+            if (oceanScore == 3) {
+              endGameProcess(team);
+            } else {
+              oceanScore++;
+            }
+          } else {
+            if (oceanScore == 3 && forestScore == 4) {
+              forestScore--;
+            } else if (oceanScore == 4 && forestScore == 3) {
+              endGameProcess(team);
+            } else {
+              if (oceanScore == 3 && forestScore < 3) {
+                endGameProcess(team);
+              } else {
+                oceanScore++;
+              }
+            }
+          }
+        });
+      }
     }
   }
 
   void endGameProcess(String team) {
-    print("End Game $team");
+    ref.read(gamesScoreProvider.notifier).addGame(team);
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (ctx) => const OptionsScreen()),
+        (Route<dynamic> route) => false);
   }
 
   @override
@@ -107,6 +140,12 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
   Widget build(BuildContext context) {
     // is Golden Point?
     isGoldenPoint = ref.watch(goldenPointProvider);
+    // Check if it is a tie break
+    isTieBreak = ref.watch(tieBreakProvider);
+    // retrieve set count
+    setCount = ref.watch(gamesScoreProvider).set;
+    gamesForest = ref.watch(gamesScoreProvider).gameForest;
+    gamesOcean = ref.watch(gamesScoreProvider).gameOcean;
     // Initialize scores list
     scores = isGoldenPoint ? scoresGoldenPoint : scoresTraditional;
     //body
@@ -118,12 +157,22 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 8),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Set 1"),
-                SizedBox(width: 4),
-                Text("Game 1"),
+                Text("Set $setCount : "),
+                const SizedBox(width: 8),
+                Text(
+                  "$gamesForest",
+                  style: const TextStyle(color: Colors.green),
+                ),
+                const SizedBox(width: 4),
+                const Text("|"),
+                const SizedBox(width: 4),
+                Text(
+                  "$gamesOcean",
+                  style: const TextStyle(color: Colors.blue),
+                ),
               ],
             ),
             const SizedBox(height: 4),
@@ -165,7 +214,9 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
                       child: Card(
                         color: Colors.transparent,
                         child: Text(
-                          scores[forestScore],
+                          isTieBreak
+                              ? forestScore.toString()
+                              : scores[forestScore],
                           style: Theme.of(context)
                               .textTheme
                               .headlineLarge!
@@ -235,7 +286,9 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
                       child: Card(
                         color: Colors.transparent,
                         child: Text(
-                          scores[oceanScore],
+                          isTieBreak
+                              ? oceanScore.toString()
+                              : scores[oceanScore],
                           style: Theme.of(context)
                               .textTheme
                               .headlineLarge!
